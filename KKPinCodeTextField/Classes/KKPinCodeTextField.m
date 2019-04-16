@@ -28,6 +28,7 @@ static const CGFloat KKDefaultBordersSpacing = 10;
 @synthesize bordersSpacing = _bordersSpacing;
 @synthesize filledDigitBorderColor = _filledDigitBorderColor;
 @synthesize emptyDigitBorderColor = _emptyDigitBorderColor;
+@synthesize selectedDigitBorderColor = _selectedDigitBorderColor;
 
 #pragma mark Initializers
 
@@ -103,8 +104,15 @@ static const CGFloat KKDefaultBordersSpacing = 10;
 
 - (BOOL)becomeFirstResponder {
     [self configureInitialSpacingAtIndex:self.text.length];
+    [self configureBorderColorsWithIsFirstResponser:YES];
     
     return [super becomeFirstResponder];
+}
+
+- (BOOL)resignFirstResponder {
+    [self configureBorderColorsWithIsFirstResponser:NO];
+    
+    return [super resignFirstResponder];
 }
 
 #pragma mark Public methods
@@ -140,20 +148,9 @@ static const CGFloat KKDefaultBordersSpacing = 10;
 
 - (void)textFieldDidChange:(UITextField *)sender {
     NSUInteger length = sender.text.length;
-    [self configureBorderColorAtIndex:length];
+    [self configureBorderColors];
     [self configureInitialSpacingAtIndex:length];
     [self addSpacingToTextWithLength:length];
-}
-
-- (void)configureBorderColorAtIndex:(NSUInteger)index {
-    if (index == 0) {
-        self.borders[0].borderColor = self.emptyDigitBorderColor.CGColor;
-    } else if (index == self.digitsCount) {
-        self.borders[self.digitsCount - 1].borderColor = self.filledDigitBorderColor.CGColor;
-    } else {
-        self.borders[index].borderColor = self.emptyDigitBorderColor.CGColor;
-        self.borders[index - 1].borderColor = self.filledDigitBorderColor.CGColor;
-    }
 }
 
 - (void)configureInitialSpacingAtIndex:(NSUInteger)index {
@@ -275,6 +272,20 @@ static const CGFloat KKDefaultBordersSpacing = 10;
     [self configureBorderColors];
 }
 
+- (UIColor *)selectedDigitBorderColor {
+    if (!_selectedDigitBorderColor) {
+        return UIColor.lightGrayColor;
+    }
+    
+    return _selectedDigitBorderColor;
+}
+
+- (void)setSelectedDigitBorderColor:(UIColor *)selectedDigitBorderColor {
+    _selectedDigitBorderColor = selectedDigitBorderColor;
+    
+    [self configureBorderColors];
+}
+
 - (void)setDelegate:(id<UITextFieldDelegate>)delegate {
     super.delegate = self;
 }
@@ -314,9 +325,20 @@ static const CGFloat KKDefaultBordersSpacing = 10;
 }
 
 - (void)configureBorderColors {
+    [self configureBorderColorsWithIsFirstResponser:self.isFirstResponder];
+}
+
+- (void)configureBorderColorsWithIsFirstResponser:(BOOL)isFirstResponder {
     for (CALayer *border in self.borders) {
-        BOOL isFilled = self.text.length > [self.borders indexOfObject:border];
-        border.borderColor = isFilled ? self.filledDigitBorderColor.CGColor : self.emptyDigitBorderColor.CGColor;
+        NSUInteger index = [self.borders indexOfObject:border];
+        NSUInteger length = self.text.length;
+        if (length > index) {
+            border.borderColor = self.filledDigitBorderColor.CGColor;
+        } else if (length == index && isFirstResponder) {
+            border.borderColor = self.selectedDigitBorderColor.CGColor;
+        } else {
+            border.borderColor = self.emptyDigitBorderColor.CGColor;
+        }
     }
 }
 

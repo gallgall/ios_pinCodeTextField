@@ -28,6 +28,9 @@ IB_DESIGNABLE
 /// Bottom border color when digit is empty. Default value is UIColor.redColor
 @property (strong, nonatomic) IBInspectable UIColor *emptyDigitBorderColor;
 
+/// Bottom border color when digit is selected. Default value is UIColor.lightGrayColor
+@property (strong, nonatomic) IBInspectable UIColor *selectedDigitBorderColor;
+
 /// Clears all text
 - (void)clearText;
 
